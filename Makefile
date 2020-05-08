@@ -1,29 +1,24 @@
 DC = docker-compose
 CURRENT_DIR = $(shell pwd)
-API = post
-
-sqldoc:
-	docker run --rm --net=api-gateway_default -v $(CURRENT_DIR)/db:/work ezio1119/tbls \
-	doc -f -t svg mysql://root:password@${API}-db:3306/${API}_DB ./
 
 proto:
-	docker run --rm -v $(CURRENT_DIR)/interfaces/controllers/${API}_grpc:$(CURRENT_DIR) \
-	-v $(CURRENT_DIR)/schema/${API}:/schema \
-	-w $(CURRENT_DIR) thethingsindustries/protoc \
+	docker run --rm -v $(CURRENT_DIR)/src/domain:/work \
+	-v $(CURRENT_DIR)/schema:/schema ezio1119/protoc \
 	-I/schema \
-	-I/usr/include/github.com/envoyproxy/protoc-gen-validate \
-	--doc_out=markdown,README.md:/schema \
-	--go_out=plugins=grpc:. \
-	--validate_out="lang=go:." \
-	${API}.proto
+	--doc_out=/schema \
+	--doc_opt=markdown,README.md \
+	--go_out=. \
+	/schema/event/event.proto
 
-event:
-	docker run --rm -v $(CURRENT_DIR)/interfaces/controllers/queue:$(CURRENT_DIR) \
-	-v $(CURRENT_DIR)/schema/queue:/schema \
-	-w $(CURRENT_DIR) thethingsindustries/protoc \
-	-I/schema \
-	-I/usr/include/github.com/envoyproxy/protoc-gen-validate \
-	--doc_out=markdown,README.md:/schema \
-	--go_out=plugins=grpc:. \
-	--validate_out="lang=go:." \
-	event.proto
+up:
+	${DC} up -d
+
+logs:
+	${DC} logs -f
+
+down:
+	${DC} stop nats-streaming
+	${DC} rm nats-streaming
+
+build:
+	${DC} build

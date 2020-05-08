@@ -1,0 +1,15 @@
+nats:
+  url: "nats-streaming:4223"
+  clusterid: "fishapp-cluster"
+  clientid: "fishapp-relaylog"
+  subject:
+    pospostdb: "postdb.position"
+  publishernum: 4
+
+postdb:
+  dbms: mysql
+  user: root
+  pass: password
+  host: post-db
+  port: 3306
+  charset: utf8mb4
