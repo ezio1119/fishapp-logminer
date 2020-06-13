@@ -4,6 +4,7 @@ nats:
   clientid: "fishapp-relaylog"
   subject:
     pospostdb: "postdb.position"
+    poschatdb: "chatdb.position"
   publishernum: 4
 
 postdb:
@@ -11,5 +12,13 @@ postdb:
   user: root
   pass: password
   host: post-db
+  port: 3306
+  charset: utf8mb4
+
+chatdb:
+  dbms: mysql
+  user: root
+  pass: password
+  host: chat-db
   port: 3306
   charset: utf8mb4

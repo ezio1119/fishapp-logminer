@@ -5,7 +5,7 @@ import (
 )
 
 type BinlogEvent struct {
-	Pos        mysql.Position
+	LastPos    mysql.Position
 	PosSubject string
 	Event      []interface{}
 }

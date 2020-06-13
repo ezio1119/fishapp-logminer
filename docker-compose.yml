@@ -5,14 +5,22 @@ services:
       context: .
       target: dev
     volumes:
-      - ./src:/app
+      - .:/app
     tty: true
+    environment:
+      TZ: Asia/Tokyo
+    depends_on:
+      - nats-streaming
 
   nats-streaming:
     image: nats-streaming:latest
     command: -p 4223 -m 8223 -cid fishapp-cluster -st FILE --dir /nats-streaming-data
     ports:
       - 8223:8223
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - nats-streaming-data:/nats-streaming-data
 
 volumes:
   nats-streaming-data:

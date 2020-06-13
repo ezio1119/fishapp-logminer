@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"log"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -15,10 +14,19 @@ type config struct {
 		ClientID  string
 		Subject   struct {
 			PosPostDB string
+			PosChatDB string
 		}
 		PublisherNum int
 	}
 	PostDB struct {
+		Dbms    string
+		User    string
+		Pass    string
+		Host    string
+		Port    uint16
+		Charset string
+	}
+	ChatDB struct {
 		Dbms    string
 		User    string
 		Pass    string
@@ -39,11 +47,11 @@ func init() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	if err := viper.Unmarshal(&C); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	spew.Dump(C)

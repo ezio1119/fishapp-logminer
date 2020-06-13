@@ -2,23 +2,25 @@ DC = docker-compose
 CURRENT_DIR = $(shell pwd)
 
 proto:
-	docker run --rm -v $(CURRENT_DIR)/src/domain:/work \
-	-v $(CURRENT_DIR)/schema:/schema ezio1119/protoc \
-	-I/schema \
-	--doc_out=/schema \
-	--doc_opt=markdown,README.md \
-	--go_out=. \
-	/schema/event/event.proto
+	docker run --rm -v $(CURRENT_DIR)/pb:/pb -v $(CURRENT_DIR)/schema:/proto ezio1119/protoc \
+	-I/proto \
+	-I/go/src/github.com/envoyproxy/protoc-gen-validate \
+	--go_out=plugins=grpc:/pb \
+	--validate_out="lang=go:/pb" \
+	event.proto chat.proto post.proto
 
 up:
 	${DC} up -d
 
 logs:
-	${DC} logs -f
+	docker logs -f --tail 100 fishapp-relaylog_relaylog_1
 
 down:
-	${DC} stop nats-streaming
-	${DC} rm nats-streaming
+	${DC} down
 
 build:
 	${DC} build
+
+clean:
+	docker stop $(shell docker ps -aq)
+	docker rm $(shell docker ps -aq)
