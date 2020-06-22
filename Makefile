@@ -1,4 +1,5 @@
 CWD = $(shell pwd)
+DC_FILE = docker-compose.yml
 SVC = relaylog
 CHAT_DB_SVC = chat-db
 POST_DB_SVC = post-db
@@ -20,12 +21,12 @@ proto:
 
 waitchatdb:
 	docker run --rm --name dockerize --net $(NET) jwilder/dockerize \
-	-timeout 30s \
+	-timeout 60s \
 	-wait tcp://$(CHAT_DB_SVC):3306
 
 waitpostdb:
 	docker run --rm --name dockerize --net $(NET) jwilder/dockerize \
-	-timeout 30s \
+	-timeout 60s \
 	-wait tcp://$(POST_DB_SVC):3306
 
 waitnats:
@@ -33,24 +34,24 @@ waitnats:
 	-wait tcp://$(NATS_SVC):4223
 
 test:
-	docker-compose exec $(SVC) sh -c "go test -v -coverprofile=cover.out ./... && \
+	docker-compose -f $(DC_FILE) exec $(SVC) sh -c "go test -v -coverprofile=cover.out ./... && \
 	go tool cover -html=cover.out -o ./cover.html" && \
 	open ./src/cover.html
 
 up: waitnats waitchatdb waitpostdb
-	docker-compose up -d $(SVC)
+	docker-compose -f $(DC_FILE) up -d $(SVC)
 
 upnats:
-	docker-compose up -d $(NATS_SVC)
+	docker-compose -f $(DC_FILE) up -d $(NATS_SVC)
 
 build:
-	docker-compose build
+	docker-compose -f $(DC_FILE) build
 
 down:
-	docker-compose down
+	docker-compose -f $(DC_FILE) down
 
 exec:
-	docker-compose exec $(SVC) sh
+	docker-compose -f $(DC_FILE) exec $(SVC) sh
 
 logs:
 	docker logs -f --tail 100 $(PJT_NAME)_$(SVC)_1
@@ -59,4 +60,4 @@ natslogs:
 	docker logs -f --tail 100 $(PJT_NAME)_$(NATS_SVC)_1
 
 rmvol:
-	docker-compose down -v
+	docker-compose -f $(DC_FILE) down -v
