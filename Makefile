@@ -2,7 +2,7 @@ CWD = $(shell pwd)
 SVC = relaylog
 CHAT_DB_SVC = chat-db
 POST_DB_SVC = post-db
-NATS_URL = nats-streaming:4223
+NATS_SVC = nats-streaming
 NET = fishapp-net
 PJT_NAME = $(notdir $(PWD))
 # TEST = $(shell docker inspect $(NET) > /dev/null 2>&1; echo " $$?")
@@ -30,15 +30,18 @@ waitpostdb:
 
 waitnats:
 	docker run --rm --name dockerize --net $(NET) jwilder/dockerize \
-	-wait tcp://$(NATS_URL)
+	-wait tcp://$(NATS_SVC):4223
 
 test:
 	docker-compose exec $(SVC) sh -c "go test -v -coverprofile=cover.out ./... && \
 	go tool cover -html=cover.out -o ./cover.html" && \
 	open ./src/cover.html
 
-up: waitchatdb waitpostdb waitnats
+up: waitnats waitchatdb waitpostdb
 	docker-compose up -d $(SVC)
+
+upnats:
+	docker-compose up -d $(NATS_SVC)
 
 build:
 	docker-compose build
@@ -51,6 +54,9 @@ exec:
 
 logs:
 	docker logs -f --tail 100 $(PJT_NAME)_$(SVC)_1
+
+natslogs:
+	docker logs -f --tail 100 $(PJT_NAME)_$(NATS_SVC)_1
 
 rmvol:
 	docker-compose down -v
