@@ -1,26 +1,56 @@
-DC = docker-compose
-CURRENT_DIR = $(shell pwd)
+CWD = $(shell pwd)
+SVC = relaylog
+CHAT_DB_SVC = chat-db
+POST_DB_SVC = post-db
+NATS_URL = nats-streaming:4223
+NET = fishapp-net
+PJT_NAME = $(notdir $(PWD))
+# TEST = $(shell docker inspect $(NET) > /dev/null 2>&1; echo " $$?")
+
+createnet:
+	docker network create $(NET)
 
 proto:
-	docker run --rm -v $(CURRENT_DIR)/pb:/pb -v $(CURRENT_DIR)/schema:/proto ezio1119/protoc \
+	docker run --rm --name protoc -v $(CWD)/pb:/pb -v $(CWD)/schema:/proto ezio1119/protoc \
 	-I/proto \
 	-I/go/src/github.com/envoyproxy/protoc-gen-validate \
 	--go_out=plugins=grpc:/pb \
 	--validate_out="lang=go:/pb" \
 	event.proto chat.proto post.proto
 
-up:
-	${DC} up -d
+waitchatdb:
+	docker run --rm --name dockerize --net $(NET) jwilder/dockerize \
+	-timeout 30s \
+	-wait tcp://$(CHAT_DB_SVC):3306
 
-logs:
-	docker logs -f --tail 100 fishapp-relaylog_relaylog_1
+waitpostdb:
+	docker run --rm --name dockerize --net $(NET) jwilder/dockerize \
+	-timeout 30s \
+	-wait tcp://$(POST_DB_SVC):3306
 
-down:
-	${DC} down
+waitnats:
+	docker run --rm --name dockerize --net $(NET) jwilder/dockerize \
+	-wait tcp://$(NATS_URL)
+
+test:
+	docker-compose exec $(SVC) sh -c "go test -v -coverprofile=cover.out ./... && \
+	go tool cover -html=cover.out -o ./cover.html" && \
+	open ./src/cover.html
+
+up: waitchatdb waitpostdb waitnats
+	docker-compose up -d $(SVC)
 
 build:
-	${DC} build
+	docker-compose build
 
-clean:
-	docker stop $(shell docker ps -aq)
-	docker rm $(shell docker ps -aq)
+down:
+	docker-compose down
+
+exec:
+	docker-compose exec $(SVC) sh
+
+logs:
+	docker logs -f --tail 100 $(PJT_NAME)_$(SVC)_1
+
+rmvol:
+	docker-compose down -v
