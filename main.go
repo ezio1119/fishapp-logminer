@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"log"
+	"net/http"
 	"time"
 
 	"github.com/ezio1119/fishapp-relaylog/conf"
@@ -51,8 +54,11 @@ Loop:
 	go logminer.StartPostDBLogMining(ctx, eventChan, postDBPos)
 	go logminer.StartChatDBLogMining(ctx, eventChan, chatDBPos)
 
-	select {}
+	http.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "relaylog is healthy!\n")
+	})
 
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func newNatsConn() (stan.Conn, error) {
