@@ -54,11 +54,11 @@ Loop:
 	go logminer.StartPostDBLogMining(ctx, eventChan, postDBPos)
 	go logminer.StartChatDBLogMining(ctx, eventChan, chatDBPos)
 
-	http.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc(conf.C.Sv.HealthCheck.Path, func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "relaylog is healthy!\n")
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":"+conf.C.Sv.HealthCheck.Port, nil))
 }
 
 func newNatsConn() (stan.Conn, error) {

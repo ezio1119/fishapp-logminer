@@ -1,3 +1,8 @@
+sv:
+  healthcheck:
+    path: /healthcheck
+    port: 8080
+
 nats:
   url: "nats-streaming:4223"
   clusterid: "fishapp-cluster"

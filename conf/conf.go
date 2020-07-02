@@ -8,6 +8,12 @@ import (
 )
 
 type config struct {
+	Sv struct {
+		HealthCheck struct {
+			Port string
+			Path string
+		}
+	}
 	Nats struct {
 		URL       string
 		ClusterID string
